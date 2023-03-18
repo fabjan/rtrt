@@ -15,6 +15,9 @@ const TEAL: [u8; 4] = [0x00, 0x87, 0x87, 0xFF];
 
 const SPHERE_RADIUS: f64 = 1.5;
 
+const MOVE_SPEED: f64 = 0.1;
+const TURN_SPEED: f64 = 0.04;
+
 fn signed_distance(p: &[f64; 3]) -> f64 {
     norm(p) - SPHERE_RADIUS
 }
@@ -58,6 +61,47 @@ fn new_camera(eye: [f64; 3], look_at: [f64; 3], up: [f64; 3], fov: f64) -> Camer
     cam
 }
 
+fn pan(cam: &mut Camera, dx: f64, dy: f64) {
+    let right = cam.view_right;
+    let up = cam.view_up;
+
+    let right = scale(&right, dx);
+    let up = scale(&up, dy);
+
+    cam.eye = plus(&cam.eye, &right);
+    cam.eye = plus(&cam.eye, &up);
+    cam.look_at = plus(&cam.look_at, &right);
+    cam.look_at = plus(&cam.look_at, &up);
+
+    recalculate_view(cam);
+}
+
+fn zoom(cam: &mut Camera, dz: f64) {
+    let dir = cam.view_dir;
+
+    let dir = scale(&dir, dz);
+
+    cam.eye = plus(&cam.eye, &dir);
+    cam.look_at = plus(&cam.look_at, &dir);
+
+    recalculate_view(cam);
+}
+
+fn rotate(cam: &mut Camera, dx: f64, dy: f64) {
+    let dir = cam.view_dir;
+    let right = cam.view_right;
+    let up = cam.view_up;
+
+    let right = scale(&right, dx);
+    let up = scale(&up, dy);
+
+    cam.look_at = plus(&cam.eye, &dir);
+    cam.look_at = plus(&cam.look_at, &right);
+    cam.look_at = plus(&cam.look_at, &up);
+
+    recalculate_view(cam);
+}
+
 fn recalculate_view(cam: &mut Camera) {
     let eye = cam.eye;
     let look_at = cam.look_at;
@@ -69,20 +113,19 @@ fn recalculate_view(cam: &mut Camera) {
     let right = normalize(&cross(&dir, &up));
     let up = normalize(&cross(&right, &dir));
 
+    let aspect = WIDTH as f64 / HEIGHT as f64;
+    let right = scale(&right, aspect * cam.fov.tan());
+    let up = scale(&up, cam.fov.tan());
+
     cam.view_dir = dir;
     cam.view_right = right;
     cam.view_up = up;
 }
 
 fn cast(cam: &Camera, x: f64, y: f64) -> [f64; 3] {
-    let aspect = WIDTH as f64 / HEIGHT as f64;
-    let fov = cam.fov;
     let dir = cam.view_dir;
     let right = cam.view_right;
     let up = cam.view_up;
-
-    let right = scale(&right, aspect * fov.tan());
-    let up = scale(&up, fov.tan());
 
     let x = x / WIDTH as f64;
     let y = y / HEIGHT as f64;
@@ -121,6 +164,15 @@ fn draw(frame: &mut [u8], scene: &Scene) {
     }
 }
 
+fn reset_camera() -> Camera {
+    new_camera(
+        [0.0, 0.0, 3.0],
+        [0.0, 0.0, 0.0],
+        [0.0, 1.0, 0.0],
+        std::f64::consts::PI / 3.0,
+    )
+}
+
 fn run(
     event_loop: EventLoop<()>,
     mut input: WinitInputHelper,
@@ -128,13 +180,8 @@ fn run(
     mut pixels: Pixels,
 ) -> Result<(), Error> {
 
-    let scene = Scene {
-        camera: new_camera(
-            [0.0, 0.0, 3.0],
-            [0.0, 0.0, 0.0],
-            [0.0, 1.0, 0.0],
-            std::f64::consts::PI / 3.0,
-        )
+    let mut scene = Scene {
+        camera: reset_camera(),
     };
 
     event_loop.run(move |event, _, control_flow| {
@@ -151,6 +198,35 @@ fn run(
             if input.key_pressed(VirtualKeyCode::Escape) || input.close_requested() {
                 *control_flow = ControlFlow::Exit;
                 return;
+            }
+
+            if input.key_pressed(VirtualKeyCode::R) {
+                scene.camera = reset_camera();
+            }
+
+            if input.key_held(VirtualKeyCode::W) {
+                zoom(&mut scene.camera, MOVE_SPEED);
+            }
+            if input.key_held(VirtualKeyCode::S) {
+                zoom(&mut scene.camera, -MOVE_SPEED);
+            }
+            if input.key_held(VirtualKeyCode::A) {
+                pan(&mut scene.camera, -MOVE_SPEED, 0.0);
+            }
+            if input.key_held(VirtualKeyCode::D) {
+                pan(&mut scene.camera, MOVE_SPEED, 0.0);
+            }
+            if input.key_held(VirtualKeyCode::Left) {
+                rotate(&mut scene.camera, -TURN_SPEED, 0.0);
+            }
+            if input.key_held(VirtualKeyCode::Right) {
+                rotate(&mut scene.camera, TURN_SPEED, 0.0);
+            }
+            if input.key_held(VirtualKeyCode::Space) {
+                pan(&mut scene.camera, 0.0, -MOVE_SPEED);
+            }
+            if input.key_held(VirtualKeyCode::LShift) {
+                pan(&mut scene.camera, 0.0, MOVE_SPEED);
             }
 
             if let Some(size) = input.window_resized() {
