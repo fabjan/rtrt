@@ -5,15 +5,17 @@ use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{Window, WindowBuilder};
 use winit_input_helper::WinitInputHelper;
 
-const WIDTH: u32 = 320;
-const HEIGHT: u32 = 240;
+const WIDTH: usize = 320;
+const HEIGHT: usize = 240;
 
 const SALMON: [u8; 4] = [0xFA, 0x80, 0x72, 0xFF];
 const SKYBLUE: [u8; 4] = [0x87, 0xCE, 0xEB, 0xFF];
+const TERRACOTTA: [u8; 4] = [0xFF, 0xB3, 0x87, 0xFF];
+const TEAL: [u8; 4] = [0x00, 0x87, 0x87, 0xFF];
 
-fn pattern(x: i16, y: i16) -> f32 {
-    let x = x as f32;
-    let y = y as f32;
+fn pattern(x: usize, y: usize) -> f64 {
+    let x = x as f64;
+    let y = y as f64;
 
     let a = 0.5 * (x * x + y * y).sqrt();
     let b = 0.5 * (x * x - y * y).sqrt();
@@ -25,10 +27,15 @@ fn pattern(x: i16, y: i16) -> f32 {
 
 fn draw(frame: &mut [u8]) {
     for (i, pixel) in frame.chunks_exact_mut(4).enumerate() {
-        let x = (i % WIDTH as usize) as i16;
-        let y = (i / WIDTH as usize) as i16;
+        let x = i % WIDTH;
+        let y = i / WIDTH;
 
-        let rgba = if 0. < pattern(x, y) { SALMON } else { SKYBLUE };
+        let rgba = match pattern(x, y) {
+            x if x < -1000. => SALMON,
+            x if x < 0. => SKYBLUE,
+            x if x < 1000. => TERRACOTTA,
+            _ => TEAL,
+        };
 
         pixel.copy_from_slice(&rgba);
     }
@@ -87,7 +94,7 @@ fn main() -> Result<(), Error> {
     let pixels = {
         let window_size = window.inner_size();
         let surface_texture = SurfaceTexture::new(window_size.width, window_size.height, &window);
-        Pixels::new(WIDTH, HEIGHT, surface_texture)?
+        Pixels::new(WIDTH as u32, HEIGHT as u32, surface_texture)?
     };
 
     run(event_loop, input, window, pixels)
