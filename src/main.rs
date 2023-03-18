@@ -10,6 +10,8 @@ const HEIGHT: usize = 240;
 
 const SALMON: [u8; 4] = [0xFA, 0x80, 0x72, 0xFF];
 const SKYBLUE: [u8; 4] = [0x87, 0xCE, 0xEB, 0xFF];
+const TERRACOTTA: [u8; 4] = [0xFF, 0xB3, 0x87, 0xFF];
+const TEAL: [u8; 4] = [0x00, 0x87, 0x87, 0xFF];
 
 fn pattern(x: usize, y: usize) -> f64 {
     let x = x as f64;
@@ -28,7 +30,12 @@ fn draw(frame: &mut [u8]) {
         let x = i % WIDTH;
         let y = i / WIDTH;
 
-        let rgba = if 0. < pattern(x, y) { SALMON } else { SKYBLUE };
+        let rgba = match pattern(x, y) {
+            x if x < -1000. => SALMON,
+            x if x < 0. => SKYBLUE,
+            x if x < 1000. => TERRACOTTA,
+            _ => TEAL,
+        };
 
         pixel.copy_from_slice(&rgba);
     }
