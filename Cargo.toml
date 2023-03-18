@@ -1,0 +1,10 @@
+[package]
+name = "rtrt"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+
+[dependencies]
+pixels = "0.11.0"
+winit = "0.28.3"
+winit_input_helper = "0.14.0"
