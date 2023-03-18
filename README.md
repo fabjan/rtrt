@@ -13,3 +13,9 @@ Maybe this will be a game?
 ## Running
 
 cargo run --release
+
+## Controls
+
+Walking: W,A,S,D  
+Turning: Arrow keys  
+Flying: Space, Shift  
