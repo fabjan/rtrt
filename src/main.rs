@@ -22,7 +22,7 @@ fn signed_distance(p: &[f64; 3]) -> f64 {
 fn sphere_trace(orig: [f64; 3], dir: &[f64; 3]) -> bool {
 
     let mut p = orig;
-    for _ in 0..100 {
+    for _ in 0..10 {
         let d = signed_distance(&p);
         if d < 0.001 {
             return true;
