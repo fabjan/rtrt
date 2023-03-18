@@ -108,10 +108,13 @@ fn draw(frame: &mut [u8], scene: &Scene) {
         let eye = scene.camera.eye;
         let dir = cast(&scene.camera, x as f64, y as f64);
 
+        let fg = if y < HEIGHT / 2 { TERRACOTTA } else { SALMON };
+        let bg = if y < HEIGHT / 2 { SKYBLUE } else { TEAL };
+
         let rgba = if sphere_trace(eye, &dir) {
-            TERRACOTTA
+            fg
         } else {
-            SKYBLUE
+            bg
         };
 
         pixel.copy_from_slice(&rgba);
