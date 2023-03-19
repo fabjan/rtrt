@@ -6,7 +6,7 @@ Maybe this will be a game?
 
 ![screenshot-2](https://user-images.githubusercontent.com/33322/226124413-26546202-8564-4176-bdb2-1ee7ddb63363.png)
 
-![screenshot-3](https://user-images.githubusercontent.com/33322/226183556-1bc36c5c-f56a-47b7-829d-9f175fcba0cf.png)
+![screenshot-3](https://user-images.githubusercontent.com/33322/226198119-2a094a24-1168-4088-8a1d-aef2f3321978.png)
 
 ## Requirements
 
