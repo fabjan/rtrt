@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use pixels::{Error, Pixels, SurfaceTexture};
 use winit::dpi::LogicalSize;
 use winit::event::{Event, VirtualKeyCode};
@@ -5,6 +7,7 @@ use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{Window, WindowBuilder};
 use winit_input_helper::WinitInputHelper;
 
+const WINDOW_TITLE: &str = "Hello Pixels";
 const WIDTH: usize = 320;
 const HEIGHT: usize = 240;
 
@@ -179,6 +182,8 @@ fn run(
     window: Window,
     mut pixels: Pixels,
 ) -> Result<(), Error> {
+    let mut frame_count = 0;
+    let mut last_frame = Instant::now();
 
     let mut scene = Scene {
         camera: reset_camera(),
@@ -186,6 +191,15 @@ fn run(
 
     event_loop.run(move |event, _, control_flow| {
         if let Event::RedrawRequested(_) = event {
+            frame_count += 1;
+
+            if 1.0 <= last_frame.elapsed().as_secs_f64() {
+                let fps = frame_count as f64 / last_frame.elapsed().as_secs_f64();
+                window.set_title(&format!("{WINDOW_TITLE} ({fps:.1} FPS)"));
+                frame_count = 0;
+                last_frame = Instant::now();
+            }
+
             draw(pixels.get_frame_mut(), &scene);
             if let Err(err) = pixels.render() {
                 eprintln!("pixels.render() failed: {err}");
@@ -250,7 +264,7 @@ fn main() -> Result<(), Error> {
     let window = {
         let size = LogicalSize::new(WIDTH as f64, HEIGHT as f64);
         WindowBuilder::new()
-            .with_title("Hello Pixels")
+            .with_title(WINDOW_TITLE)
             .with_inner_size(size)
             .with_min_inner_size(size)
             .build(&event_loop)
