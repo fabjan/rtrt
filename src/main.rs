@@ -7,6 +7,8 @@ use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{Window, WindowBuilder};
 use winit_input_helper::WinitInputHelper;
 
+use rtrt::math::*;
+
 const WINDOW_TITLE: &str = "Hello Pixels";
 const WIDTH: usize = 320;
 const HEIGHT: usize = 240;
@@ -295,47 +297,4 @@ fn main() -> Result<(), Error> {
     };
 
     run(event_loop, input, window, pixels)
-}
-
-
-fn norm(v: &[f64; 3]) -> f64 {
-    (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]).sqrt()
-}
-
-fn minus(v1: &[f64; 3], v2: &[f64; 3]) -> [f64; 3] {
-    [v1[0] - v2[0], v1[1] - v2[1], v1[2] - v2[2]]
-}
-
-fn plus(v1: &[f64; 3], v2: &[f64; 3]) -> [f64; 3] {
-    [v1[0] + v2[0], v1[1] + v2[1], v1[2] + v2[2]]
-}
-
-fn scale(v: &[f64; 3], s: f64) -> [f64; 3] {
-    [v[0] * s, v[1] * s, v[2] * s]
-}
-
-fn normalize(v: &[f64; 3]) -> [f64; 3] {
-    let n = norm(v);
-    [v[0] / n, v[1] / n, v[2] / n]
-}
-
-fn dot(v1: &[f64; 3], v2: &[f64; 3]) -> f64 {
-    v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]
-}
-
-fn cross(v1: &[f64; 3], v2: &[f64; 3]) -> [f64; 3] {
-    [
-        v1[1] * v2[2] - v1[2] * v2[1],
-        v1[2] * v2[0] - v1[0] * v2[2],
-        v1[0] * v2[1] - v1[1] * v2[0],
-    ]
-}
-
-fn color_multiply(c: &[u8; 4], s: f64) -> [u8; 4] {
-    [
-        (c[0] as f64 * s) as u8,
-        (c[1] as f64 * s) as u8,
-        (c[2] as f64 * s) as u8,
-        c[3],
-    ]
 }
