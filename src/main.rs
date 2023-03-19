@@ -16,6 +16,7 @@ const SKYBLUE: [u8; 4] = [0x87, 0xCE, 0xEB, 0xFF];
 const TERRACOTTA: [u8; 4] = [0xFF, 0xB3, 0x87, 0xFF];
 const TEAL: [u8; 4] = [0x00, 0x87, 0x87, 0xFF];
 
+const AMBIENT_LIGHT: f64 = 0.4;
 const SPHERE_RADIUS: f64 = 1.5;
 
 const MOVE_SPEED: f64 = 0.1;
@@ -25,18 +26,28 @@ fn signed_distance(p: &[f64; 3]) -> f64 {
     norm(p) - SPHERE_RADIUS
 }
 
-fn sphere_trace(orig: [f64; 3], dir: &[f64; 3]) -> bool {
+fn distance_field_normal(p: &[f64; 3], sdf: fn(&[f64; 3]) -> f64) -> [f64; 3] {
+    let eps = 0.01;
+    let d = sdf(p);
+    let x = sdf(&plus(p, &[eps, 0.0, 0.0]));
+    let y = sdf(&plus(p, &[0.0, eps, 0.0]));
+    let z = sdf(&plus(p, &[0.0, 0.0, eps]));
+    let n = [x - d, y - d, z - d];
+    normalize(&n)
+}
+
+fn sphere_trace(orig: [f64; 3], dir: &[f64; 3]) -> Option<[f64; 3]> {
 
     let mut p = orig;
     for _ in 0..10 {
         let d = signed_distance(&p);
         if d < 0.001 {
-            return true;
+            return Some(p);
         }
         p = plus(&p, &scale(dir, d));
     }
 
-    false
+    None
 }
 
 struct Camera {
@@ -157,10 +168,16 @@ fn draw(frame: &mut [u8], scene: &Scene) {
         let fg = if y < HEIGHT / 2 { TERRACOTTA } else { SALMON };
         let bg = if y < HEIGHT / 2 { SKYBLUE } else { TEAL };
 
-        let rgba = if sphere_trace(eye, &dir) {
-            fg
-        } else {
-            bg
+        let rgba = match sphere_trace(eye, &dir) {
+            Some(hit) => {
+                let n = distance_field_normal(&hit, signed_distance);
+                let light_dir = normalize(&[0.5, -1.0, 0.5]);
+                let light_intensity = 1.0;
+                let intensity = dot(&n, &light_dir) * light_intensity;
+                let intensity = intensity.max(AMBIENT_LIGHT);
+                color_multiply(&fg, intensity)
+            }
+            None => bg,
         };
 
         pixel.copy_from_slice(&rgba);
@@ -302,10 +319,23 @@ fn normalize(v: &[f64; 3]) -> [f64; 3] {
     [v[0] / n, v[1] / n, v[2] / n]
 }
 
+fn dot(v1: &[f64; 3], v2: &[f64; 3]) -> f64 {
+    v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]
+}
+
 fn cross(v1: &[f64; 3], v2: &[f64; 3]) -> [f64; 3] {
     [
         v1[1] * v2[2] - v1[2] * v2[1],
         v1[2] * v2[0] - v1[0] * v2[2],
         v1[0] * v2[1] - v1[1] * v2[0],
+    ]
+}
+
+fn color_multiply(c: &[u8; 4], s: f64) -> [u8; 4] {
+    [
+        (c[0] as f64 * s) as u8,
+        (c[1] as f64 * s) as u8,
+        (c[2] as f64 * s) as u8,
+        c[3],
     ]
 }
