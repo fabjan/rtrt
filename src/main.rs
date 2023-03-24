@@ -95,12 +95,20 @@ fn run(
         if let Event::RedrawRequested(_) = event {
             frame_count += 1;
 
-            if 1.0 <= last_frame.elapsed().as_secs_f64() {
-                let fps = frame_count as f64 / last_frame.elapsed().as_secs_f64();
+            let t = last_frame.elapsed().as_secs_f64();
+            if 1.0 <= t {
+                let fps = frame_count as f64 / t;
                 window.set_title(&format!("{WINDOW_TITLE} ({fps:.1} FPS)"));
                 frame_count = 0;
                 last_frame = Instant::now();
             }
+
+            let sin = (t * std::f64::consts::PI * 2.0).sin();
+            let cos = (t * std::f64::consts::PI * 2.0).cos();
+
+            scene.move_shape(0, sin * 5.0, 0.0, cos * 5.0);
+            scene.move_shape(1, cos * 1.5, sin * 2.5, 0.0);
+            scene.move_shape(2, 0.0, sin * 0.5, cos * 0.5);
 
             scene.draw(pixels.get_frame_mut(), WIDTH, BLACK);
 
