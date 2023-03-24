@@ -12,17 +12,28 @@ pub enum Shape {
         radius: f64,
         color: [u8; 4],
     },
+    Box {
+        center: [f64; 3],
+        size: [f64; 3],
+        color: [u8; 4],
+    },
 }
 
 fn shape_color(shape: &Shape) -> [u8; 4] {
     match shape {
         Shape::Sphere { color, .. } => *color,
+        Shape::Box { color, .. } => *color,
     }
 }
 
 fn move_shape(shape: &mut Shape, x: f64, y: f64, z: f64) {
     match shape {
         Shape::Sphere { center, .. } => {
+            center[0] = x;
+            center[1] = y;
+            center[2] = z;
+        }
+        Shape::Box { center, .. } => {
             center[0] = x;
             center[1] = y;
             center[2] = z;

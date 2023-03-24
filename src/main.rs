@@ -22,7 +22,7 @@ const BLACK: [u8; 4] = [0x00, 0x00, 0x00, 0xFF];
 
 fn reset_camera() -> Camera {
     new_camera(
-        [0.0, 0.0, 3.0],
+        [0.0, 0.0, 9.0],
         [0.0, 0.0, 0.0],
         [0.0, 1.0, 0.0],
         std::f64::consts::PI / 3.0,
@@ -64,6 +64,30 @@ fn run(
             center: [0.0, 3.0, 1.0],
             radius: 2.0,
             color: TEAL,
+        },
+    );
+    scene.add_shape(
+        3,
+        Shape::Box {
+            center: [0.0, 0.0, -5.0],
+            size: [10.0, 5.0, 0.1],
+            color: GRAY,
+        },
+    );
+    scene.add_shape(
+        4,
+        Shape::Box {
+            center: [-5.0, 0.0, 0.0],
+            size: [0.1, 5.0, 10.0],
+            color: GRAY,
+        },
+    );
+    scene.add_shape(
+        5,
+        Shape::Box {
+            center: [5.0, 0.0, 0.0],
+            size: [0.1, 5.0, 10.0],
+            color: GRAY,
         },
     );
 
