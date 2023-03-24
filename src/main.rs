@@ -7,77 +7,18 @@ use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{Window, WindowBuilder};
 use winit_input_helper::WinitInputHelper;
 
-use rtrt::camera::{handle_input, new_camera, raycast, Camera};
-use rtrt::math::*;
+use rtrt::camera::{handle_input, new_camera, Camera};
+use rtrt::scene::{self, Shape};
 
 const WINDOW_TITLE: &str = "Hello Pixels";
 const WIDTH: usize = 320;
 const HEIGHT: usize = 240;
 
 const SALMON: [u8; 4] = [0xFA, 0x80, 0x72, 0xFF];
-const SKYBLUE: [u8; 4] = [0x87, 0xCE, 0xEB, 0xFF];
 const TERRACOTTA: [u8; 4] = [0xFF, 0xB3, 0x87, 0xFF];
 const TEAL: [u8; 4] = [0x00, 0x87, 0x87, 0xFF];
-
-const AMBIENT_LIGHT: f64 = 0.4;
-const SPHERE_RADIUS: f64 = 1.5;
-
-fn signed_distance(p: &[f64; 3]) -> f64 {
-    norm(p) - SPHERE_RADIUS
-}
-
-fn distance_field_normal(p: &[f64; 3], sdf: fn(&[f64; 3]) -> f64) -> [f64; 3] {
-    let eps = 0.01;
-    let d = sdf(p);
-    let x = sdf(&plus(p, &[eps, 0.0, 0.0]));
-    let y = sdf(&plus(p, &[0.0, eps, 0.0]));
-    let z = sdf(&plus(p, &[0.0, 0.0, eps]));
-    let n = [x - d, y - d, z - d];
-    normalize(&n)
-}
-
-fn sphere_trace(orig: [f64; 3], dir: &[f64; 3]) -> Option<[f64; 3]> {
-    let mut p = orig;
-    for _ in 0..10 {
-        let d = signed_distance(&p);
-        if d < 0.001 {
-            return Some(p);
-        }
-        p = plus(&p, &scale(dir, d));
-    }
-
-    None
-}
-
-struct Scene {
-    camera: Camera,
-}
-
-fn draw(frame: &mut [u8], scene: &Scene) {
-    for (i, pixel) in frame.chunks_exact_mut(4).enumerate() {
-        let x = i % WIDTH;
-        let y = i / WIDTH;
-
-        let (eye, dir) = raycast(&scene.camera, x as f64, y as f64);
-
-        let fg = if y < HEIGHT / 2 { TERRACOTTA } else { SALMON };
-        let bg = if y < HEIGHT / 2 { SKYBLUE } else { TEAL };
-
-        let rgba = match sphere_trace(eye, &dir) {
-            Some(hit) => {
-                let n = distance_field_normal(&hit, signed_distance);
-                let light_dir = normalize(&[0.5, -1.0, 0.5]);
-                let light_intensity = 1.0;
-                let intensity = dot(&n, &light_dir) * light_intensity;
-                let intensity = intensity.max(AMBIENT_LIGHT);
-                color_multiply(&fg, intensity)
-            }
-            None => bg,
-        };
-
-        pixel.copy_from_slice(&rgba);
-    }
-}
+const GRAY: [u8; 4] = [0x87, 0x87, 0x87, 0xFF];
+const BLACK: [u8; 4] = [0x00, 0x00, 0x00, 0xFF];
 
 fn reset_camera() -> Camera {
     new_camera(
@@ -99,9 +40,32 @@ fn run(
     let mut frame_count = 0;
     let mut last_frame = Instant::now();
 
-    let mut scene = Scene {
-        camera: reset_camera(),
-    };
+    let mut scene = scene::new_scene(reset_camera());
+
+    scene.add_shape(
+        0,
+        Shape::Sphere {
+            center: [0.0, 1.0, 0.0],
+            radius: 0.7,
+            color: TERRACOTTA,
+        },
+    );
+    scene.add_shape(
+        1,
+        Shape::Sphere {
+            center: [1.0, 1.0, 0.0],
+            radius: 1.1,
+            color: SALMON,
+        },
+    );
+    scene.add_shape(
+        2,
+        Shape::Sphere {
+            center: [0.0, 3.0, 1.0],
+            radius: 2.0,
+            color: TEAL,
+        },
+    );
 
     event_loop.run(move |event, _, control_flow| {
         if let Event::RedrawRequested(_) = event {
@@ -114,7 +78,8 @@ fn run(
                 last_frame = Instant::now();
             }
 
-            draw(pixels.get_frame_mut(), &scene);
+            scene.draw(pixels.get_frame_mut(), WIDTH, BLACK);
+
             if let Err(err) = pixels.render() {
                 eprintln!("pixels.render() failed: {err}");
                 *control_flow = ControlFlow::Exit;
