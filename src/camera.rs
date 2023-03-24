@@ -4,7 +4,7 @@ use winit_input_helper::WinitInputHelper;
 use crate::math::*;
 
 const MOVE_SPEED: f64 = 0.1;
-const TURN_SPEED: f64 = 0.04;
+const TURN_SPEED: f64 = 0.02;
 
 pub struct Camera {
     eye: [f64; 3],

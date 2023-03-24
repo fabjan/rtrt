@@ -8,6 +8,8 @@ Maybe this will be a game?
 
 ![screenshot-3](https://user-images.githubusercontent.com/33322/226198119-2a094a24-1168-4088-8a1d-aef2f3321978.png)
 
+![screenshot-4](https://user-images.githubusercontent.com/33322/227655418-ad942243-4b49-48fd-807d-af557002dffc.png)
+
 ## Requirements
 
 * [Rust](https://rustup.rs)
