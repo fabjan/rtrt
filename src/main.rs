@@ -12,7 +12,7 @@ use rtrt::scene::{self, Shape};
 
 const WINDOW_TITLE: &str = "Hello Pixels";
 const WIDTH: usize = 320;
-const HEIGHT: usize = 240;
+const HEIGHT: usize = 200;
 
 const SALMON: [u8; 4] = [0xFA, 0x80, 0x72, 0xFF];
 const TERRACOTTA: [u8; 4] = [0xFF, 0xB3, 0x87, 0xFF];
